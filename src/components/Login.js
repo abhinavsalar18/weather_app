@@ -47,7 +47,7 @@ const Login = () => {
         console.log("User: ", user);
     }, [user, errorMessage])
     return (
-        <div className="min-h-[100vh]">
+        <div className="min-h-[100vh] dark:bg-[rgb(61,61,61)]">
             <h2 className="text-center pt-6 text-gray-600 font-semibold dark:text-gray-300 text-lg">Login to use the Weather App</h2>
             <form 
                     onSubmit={(e) => e.preventDefault()}
