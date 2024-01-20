@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useUser from "../context/UserContext";
-import { img_url } from "../constants";
 import weather_icon from "../staticData/images/weather_icon.png";
 import ThemeButton from "./ThemeButton";
 

@@ -1,5 +1,3 @@
-export const img_url = "https://i.pinimg.com/originals/06/c4/f7/06c4f70ec5931e2342e703e8a3f0a253.png";
-
 export const authData = [
     {
       "name": "John Doe",
@@ -33,6 +31,7 @@ export const authData = [
   export const week_days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   export const week_days_full = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
+  
   export const API_OPTIONS = {
     key: API_KEY,
     base: API_BASE_URL,

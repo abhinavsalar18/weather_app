@@ -7,9 +7,11 @@ import humidity from "../staticData/images/humidity.svg"
 import pressure from "../staticData/images/pressure.svg"
 import temp_low from "../staticData/images/thermometer_loss.svg"
 import temp_high from "../staticData/images/thermometer_add.svg"
-import { API_BASE_URL, API_KEY, API_OPTIONS, week_days, week_days_full } from "../constants";
+import { API_OPTIONS, week_days, week_days_full } from "../constants";
 import { CiLocationOn } from "react-icons/ci";
 import ForecastWeatherCard from "./ForecastWeatherCard";
+
+
 const Dashboard = () => {
     const [location, setLocation] = useState(null);
     const [currentWeather, setCurrentWeather] = useState();
@@ -32,6 +34,7 @@ const Dashboard = () => {
         }
     );
    
+    // fetching weather data
     const fetchData = async () => {
         if(!input || !input.current || input.current.value === "") return; 
 
