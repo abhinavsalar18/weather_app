@@ -30,9 +30,12 @@ const Login = () => {
                 console.log(data, user, user1);
                 return true;
             }
-        })
 
-        if(!userData){
+            return false;
+        });
+        
+        console.log("userData: ", userData);
+        if(userData.length === 0 || !userData){
             setErrorMessage("Invalid username or password!");
             return;
         }
@@ -42,38 +45,39 @@ const Login = () => {
 
     useEffect(() => {
         console.log("User: ", user);
-    }, [user])
+    }, [user, errorMessage])
     return (
-        <div className="" style={{backgroundColor: "green"}}>
+        <div className="min-h-[100vh]">
+            <h2 className="text-center pt-6 text-gray-600 font-semibold dark:text-gray-300 text-lg">Login to use the Weather App</h2>
             <form 
-                onSubmit={(e) => e.preventDefault()}
-                className="absolute mx-[8px] w-[96%] md:min-w-[450px] md:min-h-[450px] shadow-lg md:w-3/12 p-12 my-24 md:mx-auto left-0 right-0 rounded-md dark:bg-[rgb(51,51,51)] dark:text-white"
-            >
-                <h1 className="font-bold text-3xl py-2 text-black dark:text-white">Login</h1>
-                <input 
-                    ref={username}
-                    type="text" 
-                    placeholder="Username" 
-                    className="p-4 my-4 w-full bg-gray- rounded-md border-2 text-black dark:bg-[rgb(51,51,51)] dark:text-white" 
-                />
-                  
-                <input 
-                    ref={password}
-                    type="password" 
-                    placeholder="Password" 
-                    className="p-4 my-4 w-full rounded-md border-2 text-black dark:bg-[rgb(51,51,51)] dark:text-white" 
-                />
+                    onSubmit={(e) => e.preventDefault()}
+                    className="w-[80%] md:w-[75%] lg:w-[40%] mx-auto px-8 my-12 py-6 pb-10 rounded-lg dark:bg-[rgb(51,51,51)] dark:text-white border-2 border-cyan-300"
+                >
+                    <h1 className="font-bold text-3xl py-2 text-black dark:text-white">Login</h1>
+                    <input 
+                        ref={username}
+                        type="text" 
+                        placeholder="Username" 
+                        className="p-4 my-4 w-full rounded-md border  text-black dark:bg-[rgb(51,51,51)] dark:text-white focus:border-cyan-300 focus:outline-none" 
+                    />
+                    
+                    <input 
+                        ref={password}
+                        type="password" 
+                        placeholder="Password" 
+                        className="p-4 my-4 w-full rounded-md border text-black dark:bg-[rgb(51,51,51)] dark:text-white focus:border-cyan-300 focus:outline-none" 
+                    />
 
-                {
-                    errorMessage &&
-                    <p className="text-[rgb(226,63,77)] text-lg py-2">{errorMessage}</p>
-                }
-                <button 
-                    onClick={handleLogin}
-                    className="p-4 my-6 text-white bg-[rgb(29,164,208)] w-full rounded-md border-2 border-cyan-200">
-                    Login
-                </button>
-            </form>
+                    {
+                        errorMessage &&
+                        <p className="text-[rgb(226,63,77)] text-lg py-2">{errorMessage}</p>
+                    }
+                    <button 
+                        onClick={handleLogin}
+                        className="text-lg p-2 my-4 text-white bg-gradient-to-r from-cyan-400 to-purple-400 w-full rounded-md border-2 hover:rounded-3xl transition-all duration-300">
+                        Login
+                    </button>
+                </form>
         </div>
     )
 }

@@ -6,7 +6,7 @@ const ForecastWeatherCard = (props) => {
   const {day, temp_high, temp_low, icon, title} = props;
     return (
     <>
-        <div className='flex  my-2 border justify-between p-2 rounded-2xl px-4 lg:w-[70%] md:w-[80%] w-[85%] mx-auto text-center items-center border-cyan-400 shadow-lg dark:bg-[rgb(51,51,51)] dark:text-white'>
+        <div className='flex  my-2 border justify-between p-2 rounded-2xl px-2 pr-6 lg:w-[70%] md:w-[80%] w-[85%] mx-auto text-center items-center border-cyan-400 shadow-lg dark:bg-[rgb(51,51,51)] dark:text-white'>
             <div className='w-20'>{day}</div>
             <div className='flex justify-center items-center align-middle w-10'>
                 <img 

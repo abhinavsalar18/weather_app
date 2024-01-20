@@ -10,6 +10,8 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 
 const AppLayout = () => {
+  
+  // vriables for managing user data and themeMode
   const [user, setUser] = useState();
   const [themeMode, setThemeMode] = useState('light');
   
@@ -28,7 +30,7 @@ const AppLayout = () => {
   return (
       <ThemeProvider value={{themeMode, darkTheme, lightTheme}}>
         <UserProvider value={{user: user, setUser: setUser}}>
-          <div className='dark:bg-[rgb(61,61,61)]'>
+          <div>
             <Navbar />
             <Outlet />
           </div>
@@ -36,6 +38,8 @@ const AppLayout = () => {
       </ThemeProvider>
   )
 }
+
+
 const appRouter = createBrowserRouter([
   {
     path: "/",

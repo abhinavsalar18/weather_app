@@ -7,83 +7,97 @@ import humidity from "../staticData/images/humidity.svg"
 import pressure from "../staticData/images/pressure.svg"
 import temp_low from "../staticData/images/thermometer_loss.svg"
 import temp_high from "../staticData/images/thermometer_add.svg"
-import { week_days, week_days_full } from "../constants";
+import { API_BASE_URL, API_KEY, API_OPTIONS, week_days, week_days_full } from "../constants";
 import { CiLocationOn } from "react-icons/ci";
 import ForecastWeatherCard from "./ForecastWeatherCard";
 const Dashboard = () => {
     const [location, setLocation] = useState(null);
     const [currentWeather, setCurrentWeather] = useState();
     const [forecastWeather, setForecastWeather] = useState();
+    const [hourlyWeather, setHourlyWeather] = useState();
 
     const navigate = useNavigate();
     const {user} = useUser();
     const input = useRef();
     const date = new Date().toString().split(' ').splice(0,4);
+    
     let crnt_time = new Date().toLocaleTimeString().toString().split(":").splice(0,2);
     let time_minutes = parseInt(crnt_time[0]) * 60 + parseInt(crnt_time[1]);
     
     let day_index = week_days.indexOf(date[0]);
-    // console.log(crnt_time);
     const time = new Date().toLocaleString(
         'en-US', 
         { 
             hour: 'numeric', minute: 'numeric', hour12: true 
         }
     );
-    // console.log(time, date)
+   
     const fetchData = async () => {
-        try {
-            const api = {
-                key: "1117b4c403c24488ad160732241901",
-                base: "https://api.weatherapi.com/v1",
-                forecast: "/forecast.json",
-                current_weather: "/current.json"
+        if(!input || !input.current || input.current.value === "") return; 
 
-            }
+        try {
+            const api = API_OPTIONS;
             const days = "7";
-            // const query_lat_lon = `${location.latitude},${location.longitude}`;
-            const query_location = input?.current?.value || "Delhi";
-            // setLocation(query_location);
-            // const query = query_location ? query_location : query_lat_lon;
-            // const currentWeather = await fetch(`${api.base}${api.current_weather}?q=${query_location}&key=${api.key}`);
+            const query_location = input?.current?.value;
+            input.current.value = "";
+
             const forecastWeather = await fetch(`${api.base}${api.forecast}?q=${query_location}&key=${api.key}&days=${days}`);
-            // const currentWeatherJson = await currentWeather.json();
             const forecastWeatherJson = await forecastWeather.json();
-            console.log(forecastWeatherJson?.current, forecastWeatherJson?.forecast?.forecastday);
 
             setCurrentWeather(forecastWeatherJson?.current);
             setForecastWeather(forecastWeatherJson?.forecast?.forecastday);
+            
+            setHourlyForecast(forecastWeatherJson?.forecast?.forecastday);
             setLocation(query_location);
+           
+
         } catch (error) {
             console.log(error);
         }
         
 
     }
+    
+    function setHourlyForecast(forecastData){
+        let data_same_day = forecastData[0]?.hour.filter((data) => {
 
-    const fetchLocation =  () => {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const {coords} = position;
-            console.log("User location: ", position, coords);
-            setLocation({latitude: coords?.latitude, longitude: coords?.longitude});
-            fetchData();
-        }, (error) => {
-            console.log(error);
+            const time_24 = data?.time.split(' ')[1].split(':');
+            const crnt_time_min = parseInt(time_24[0]) * 60 + parseInt(time_24[1]); 
+            if(crnt_time_min > time_minutes) return true;
+            return false;
         });
+        
+        let count  = data_same_day.length;
+        let data_next_day = forecastData[1]?.hour.filter(() => {
+            if(count < 24){
+                count++;
+                return true;
+            }
+            return false;
+        });
+        
+        setHourlyWeather([...data_same_day, ...data_next_day]);
     }
+    
 
     const getTimeIn12Hours = (time_24) => {
-       const time_12 = time_24[0] <= '12' ? time_24[0] : (parseInt(time_24[0]) - 12) + ":" + time_24[1] + (parseInt(time_24[0]) >= 12 ? " PM" : " AM");
-      return time_12 
+        const hrs = parseInt(time_24[0]) <= 12 ? parseInt(time_24[0]) : (parseInt(time_24[0]) - 12);
+        const minutes = time_24[1];
+        let time_12 = (hrs === 0 ? "12" : (hrs < 10 ? ("0" + hrs) : hrs));
+        time_12 += ":" + minutes + (hrs < 12 ? " AM" : " PM");
+        return time_12 ;
     }
+
+    // if user if not logged in then redirect to login page
     useEffect(() => {
-        fetchData();
-        // if(!user){
-        //     navigate("/login");
-        // }
-    }, [])
+        if(!user){
+            navigate("/");
+        }
+    }, []);
+
+
     return (
-        <div className="overflow-hidden dark:bg-[rgb(61,61,61)]">
+        <div className="overflow-hidden dark:bg-[rgb(61,61,61)] min-h-[100vh]">
             <div className="input py-2 text-center ">
             <input
                 ref={input}
@@ -102,7 +116,10 @@ const Dashboard = () => {
                 <div className="date-time-loc  w-full flex-col justify-between py-4">
                     <div className=" flex justify-between px-4">
                         <div className="flex items-center">
-                            <CiLocationOn />
+                            <div className="pr-[5px]">
+                                <CiLocationOn 
+                                />
+                            </div>
                             <span>{location || "--"}</span>
                         </div>
                         <span>{date && date.join(' ')}</span>
@@ -110,16 +127,19 @@ const Dashboard = () => {
                     </div>
                     <div className="temp-icon flex justify-center text-center py-4">
                         <h1 className="lg:text-9xl md:text-8xl text-7xl">{currentWeather?.temp_c || "--"}° </h1>
-                        <img 
-                            className="w-20"
-                            src={currentWeather?.condition?.icon} alt="logo"
-                        />
+                        {
+                            currentWeather &&
+                            <img 
+                                className="w-20"
+                                src={currentWeather?.condition?.icon} alt="logo"
+                            />
+                        }
                     </div>
                     <div className="text-feeslike flex justify-center">
                         <div className="flex-col text-center">
                             <h2 className="text-2xl text-gray-600 dark:text-gray-400 font-semibold">{currentWeather?.condition?.text}</h2>
                             {
-                                <h2 className="text-md font-semibold text-gray-600 dark:text-gray-400">Feels like &nbsp;{currentWeather?.feelslike_c}°</h2>
+                                <h2 className="text-md font-semibold text-gray-600 dark:text-gray-400">{currentWeather && "Feels like "}&nbsp;{currentWeather?.feelslike_c}°</h2>
                             }
                         </div>
                         <div className="flex px-4 -mt-4">
@@ -151,17 +171,16 @@ const Dashboard = () => {
                             </div>
                     </div>
                     <div className="hourly-forecast my-4 text-center">
-                        <h1 className="py-2 text-lg">Hourly Forecast</h1>
-                        <div className="flex overflow-x-auto no-scrollbar box-border mx-2 md:justify-center lg:justify-center">
+                        <h1 className="py-2 text-lg">{currentWeather && "Hourly Forecast"}</h1>
+                        <div className="flex overflow-x-auto no-scrollbar box-border lg:mx-8 md:mx-4 mx-2">
                             {
-                                forecastWeather &&
-                                forecastWeather[0]?.hour?.map((data, index) => {
+                                hourlyWeather &&
+                                hourlyWeather?.map((data, index) => {
                                     const time_24 = data?.time.split(' ')[1].split(':');
-                                    const crnt_time_min = parseInt(time_24[0]) * 60 + parseInt(time_24[1]);
                                     const time_12 = getTimeIn12Hours(time_24);
-                                    return time_minutes < crnt_time_min && (
+                                    return (
                                         <div key={index} className="min-w-20 mx-2">
-                                            <WeatherCard day={time_12} temp={data?.temp_c} icon={data?.condition?.icon} />
+                                            <WeatherCard key={index} day={time_12} temp={data?.temp_c} icon={data?.condition?.icon} />
                                         </div>
                                     );
                                 })  
@@ -170,7 +189,7 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
-            <h1 className="text-center mt-8 font-semibold text-gray-600 text-lg">Forecast For UpComing Days</h1>
+            <h1 className="text-center mt-8 font-semibold text-gray-600 dark:text-gray-300 text-lg">{currentWeather && "Forecast For UpComing Days"}</h1>
             <div className="forecast my-8 lg:w-[80%] md:w-[100%] w-[95%] mx-auto flex-col justify-center">
                 {
                     forecastWeather &&

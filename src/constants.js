@@ -24,9 +24,24 @@ export const authData = [
       "username": "bob_t",
       "password": "bobpass",
       "city": "San Francisco"
+    },
+    {
+      "name": "Abhinav Salar",
+      "username": "abhi",
+      "password": "abhi",
+      "city": "Mzn"
     }
   ];
-   
+  
+  export const API_KEY = process.env.REACT_APP_API_KEY;
+  export const API_BASE_URL = "https://api.weatherapi.com/v1";
   export const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
   export const week_days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   export const week_days_full = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+  export const API_OPTIONS = {
+    key: API_KEY,
+    base: API_BASE_URL,
+    forecast: "/forecast.json",
+    current_weather: "/current.json"
+}
