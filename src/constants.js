@@ -24,12 +24,6 @@ export const authData = [
       "username": "bob_t",
       "password": "bobpass",
       "city": "San Francisco"
-    },
-    {
-      "name": "Abhinav Salar",
-      "username": "abhi",
-      "password": "abhi",
-      "city": "Mzn"
     }
   ];
   
