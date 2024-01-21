@@ -39,8 +39,7 @@ export const authData = [
   // export const API_BASE_URL = "https://api.weatherapi.com/v1";
   
   // open weather map API
-  export const API_KEY = process.env.REACT_APP_OPEN_API_KEY;
-
+  export const API_KEY = process.env.REACT_APP_API_KEY;
   // geocoding example url => http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
   export const OPEN_GEOCODING_API_BASE_URL = "https://api.openweathermap.org/geo/1.0/direct"
 
