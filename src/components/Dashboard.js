@@ -7,10 +7,9 @@ import humidity from "../staticData/images/humidity.svg"
 import pressure from "../staticData/images/pressure.svg"
 import temp_low from "../staticData/images/thermometer_loss.svg"
 import temp_high from "../staticData/images/thermometer_add.svg"
-import { API_OPTIONS, week_days, week_days_full } from "../constants";
+import { API_OPTIONS, WEATHER_ICON_BASE_URL, WEATHER_ICON_SUFFIX, current_dummy, forecast_dummy, hourly_dummy, week_days, week_days_full } from "../constants";
 import { CiLocationOn } from "react-icons/ci";
 import ForecastWeatherCard from "./ForecastWeatherCard";
-
 
 const Dashboard = () => {
     const [location, setLocation] = useState(null);
@@ -22,10 +21,6 @@ const Dashboard = () => {
     const {user} = useUser();
     const input = useRef();
     const date = new Date().toString().split(' ').splice(0,4);
-    
-    let crnt_time = new Date().toLocaleTimeString().toString().split(":").splice(0,2);
-    let time_minutes = parseInt(crnt_time[0]) * 60 + parseInt(crnt_time[1]);
-    
     let day_index = week_days.indexOf(date[0]);
     const time = new Date().toLocaleString(
         'en-US', 
@@ -34,24 +29,36 @@ const Dashboard = () => {
         }
     );
    
-    // fetching weather data
-    const fetchData = async () => {
-        if(!input || !input.current || input.current.value === "") return; 
 
+    // function for mapping location to the latitude and longitude using Geocoding API
+    const geocodingData = async (location) => {
+        const {geocoding_base, key} = API_OPTIONS;
+        const latitude_longitude_data = await fetch(`${geocoding_base}?q=${location}&appid=${key}`);
+
+        const jsonData = await latitude_longitude_data.json();        
+        const {lat, lon} = jsonData[0];
+        return {lat, lon};
+    }
+
+
+    // fetching all the weather data
+    const fetchData = async (default_loc) => {
+         
         try {
-            const api = API_OPTIONS;
-            const days = "7";
-            const query_location = input?.current?.value;
-            input.current.value = "";
+            const query_location = input?.current?.value || default_loc;
 
-            const forecastWeather = await fetch(`${api.base}${api.forecast}?q=${query_location}&key=${api.key}&days=${days}`);
-            const forecastWeatherJson = await forecastWeather.json();
+            const {weather_base, key} = API_OPTIONS
+            const {lat, lon} = await geocodingData(query_location);
 
-            setCurrentWeather(forecastWeatherJson?.current);
-            setForecastWeather(forecastWeatherJson?.forecast?.forecastday);
+            const weatherData = await fetch(`${weather_base}?lat=${lat}&lon=${lon}&appid=${key}&units=metric`);
+            const weatherDataJson = await weatherData.json();
             
-            setHourlyForecast(forecastWeatherJson?.forecast?.forecastday);
+            // console.log("weather_data: ", weatherDataJson)
+            setCurrentWeather(weatherDataJson?.current);
+            setForecastWeather(weatherDataJson?.daily);
+            setHourlyWeather(weatherDataJson?.hourly);
             setLocation(query_location);
+            input.current.value = "";
            
 
         } catch (error) {
@@ -61,38 +68,47 @@ const Dashboard = () => {
 
     }
     
-    function setHourlyForecast(forecastData){
-        let data_same_day = forecastData[0]?.hour.filter((data) => {
 
-            const time_24 = data?.time.split(' ')[1].split(':');
-            const crnt_time_min = parseInt(time_24[0]) * 60 + parseInt(time_24[1]); 
-            if(crnt_time_min > time_minutes) return true;
-            return false;
-        });
+    // utility functions for converting time and manipulation of string
+
+    // UINX UTC time to standard 24 hours time
+    const UnixUTC_to_time24 = (crnt_time) => {
+        const unix_timestamp = crnt_time;
+        var date = new Date(unix_timestamp * 1000);
+        var hours = date.getHours();
+
+        var minutes = "0" + date.getMinutes();
+
+        var formattedTime = hours + ':' + minutes.substr(-2);
+        return formattedTime.toString();
         
-        let count  = data_same_day.length;
-        let data_next_day = forecastData[1]?.hour.filter(() => {
-            if(count < 24){
-                count++;
-                return true;
-            }
-            return false;
-        });
-        
-        setHourlyWeather([...data_same_day, ...data_next_day]);
     }
     
+    // making first letter of each word capital
+    function toCamelCase(inputString) {
+        if(!inputString) return "";
+        return inputString.replace(/\w+/g, function(word, index) {
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        });
+      }
 
+      // converting 24 hours time to 24 hours
     const getTimeIn12Hours = (time_24) => {
-        const hrs = parseInt(time_24[0]) <= 12 ? parseInt(time_24[0]) : (parseInt(time_24[0]) - 12);
-        const minutes = time_24[1];
-        let time_12 = (hrs === 0 ? "12" : (hrs < 10 ? ("0" + hrs) : hrs));
-        time_12 += ":" + minutes + (hrs < 12 ? " AM" : " PM");
-        return time_12 ;
+        const [hours, minutes] = time_24.split(':');
+        let hours12 = parseInt(hours, 10);
+
+        const period = hours12 >= 12 ? 'PM' : 'AM';
+
+        hours12 = hours12 % 12 || 12;
+        
+        const time12 = `${hours12}:${minutes} ${period}`;
+
+        return time12;
     }
 
     // if user if not logged in then redirect to login page
     useEffect(() => {
+        fetchData("Delhi");
         if(!user){
             navigate("/");
         }
@@ -129,18 +145,19 @@ const Dashboard = () => {
                         <span>{time}</span>
                     </div>
                     <div className="temp-icon flex justify-center text-center py-4">
-                        <h1 className="lg:text-9xl md:text-8xl text-7xl">{currentWeather?.temp_c || "--"}° </h1>
+                        <h1 className="lg:text-9xl md:text-8xl text-7xl">{currentWeather?.temp || "--"}° </h1>
                         {
                             currentWeather &&
                             <img 
                                 className="w-20"
-                                src={currentWeather?.condition?.icon} alt="logo"
+                                // ${(currentWeather?.weather[0]?.icon).substr(0,2)}${themeMode==='light' ? 'd' : 'n'}
+                                src={`${WEATHER_ICON_BASE_URL}${currentWeather?.weather[0]?.icon}${WEATHER_ICON_SUFFIX}`} alt="logo"
                             />
                         }
                     </div>
                     <div className="text-feeslike flex justify-center">
                         <div className="flex-col text-center">
-                            <h2 className="text-2xl text-gray-600 dark:text-gray-400 font-semibold">{currentWeather?.condition?.text}</h2>
+                            <h2 className="text-2xl text-gray-600 dark:text-gray-400 font-semibold">{toCamelCase(currentWeather?.weather[0]?.description)}</h2>
                             {
                                 <h2 className="text-md font-semibold text-gray-600 dark:text-gray-400">{currentWeather && "Feels like "}&nbsp;{currentWeather?.feelslike_c}°</h2>
                             }
@@ -148,18 +165,18 @@ const Dashboard = () => {
                         <div className="flex px-4 -mt-4">
                             <div className="flex items-center px-2">
                                 <img src={temp_low} alt="temp_high" />
-                                <span className="text-lg font-semibold px-[4px]">{forecastWeather && forecastWeather[0]?.day.mintemp_c}°</span>
+                                <span className="text-lg font-semibold px-[4px]">{forecastWeather && forecastWeather[0]?.temp?.min}°</span>
                             </div>
                             <div className="flex items-center px-2">
                                 <img src={temp_high} alt="temp_high" />
-                                <span className="text-lg font-semibold px-[4px]">{forecastWeather && forecastWeather[0]?.day.maxtemp_c}°</span>
+                                <span className="text-lg font-semibold px-[4px]">{forecastWeather && forecastWeather[0]?.temp?.max}°</span>
                             </div>
                         </div>
                     </div>
                     <div className="info border-cyan-300 shadow-lg flex self-center justify-between rounded-lg border my-4 md:w-[70%] w-[85%] lg:w-[60%] px-4 mx-auto dark:bg-[rgb(51,51,51)] dark:text-white">
                             <div className="flex-col justify-center text-center py-2">
                                 <img className="ml-4 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-3xl p-[2px]" src={pressure} alt="pressure"></img>
-                                <h2 className="font-semibold pt-[5px]">{currentWeather?.pressure_mb || "--"} mb</h2>
+                                <h2 className="font-semibold pt-[5px]">{currentWeather?.pressure || "--"} hPa</h2>
                                 <h2 className="font-medium">Pressure</h2>
                             </div>
                             <div className="flex-col justify-center text-center py-2">
@@ -169,7 +186,7 @@ const Dashboard = () => {
                             </div>
                             <div className="wind flex-col justify-center text-center py-2">
                             <img className="ml-4 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-3xl p-[2px]" src={wind} alt="pressure"></img>
-                                <h2 className="font-semibold pt-[5px]">{currentWeather?.gust_mph || "--"} mph</h2>
+                                <h2 className="font-semibold pt-[5px]">{currentWeather?.wind_speed || "--"} m/s</h2>
                                 <h2 className="font-medium">Wind</h2>
                             </div>
                     </div>
@@ -179,11 +196,14 @@ const Dashboard = () => {
                             {
                                 hourlyWeather &&
                                 hourlyWeather?.map((data, index) => {
-                                    const time_24 = data?.time.split(' ')[1].split(':');
+                                    const time_24 = UnixUTC_to_time24(data?.dt);
                                     const time_12 = getTimeIn12Hours(time_24);
                                     return (
                                         <div key={index} className="min-w-20 mx-2">
-                                            <WeatherCard key={index} day={time_12} temp={data?.temp_c} icon={data?.condition?.icon} />
+                                            <WeatherCard 
+                                                key={index} day={time_12} temp={data?.temp} 
+                                                icon={`${WEATHER_ICON_BASE_URL}${data.weather[0]?.icon}${WEATHER_ICON_SUFFIX}`} 
+                                            />
                                         </div>
                                     );
                                 })  
@@ -198,17 +218,18 @@ const Dashboard = () => {
                     forecastWeather &&
                     forecastWeather.map((data, index) => {
                         const crnt_day = week_days_full[(parseInt(day_index + index) % week_days.length)];
-                        const {icon, text} = data?.day?.condition;
-                        const {mintemp_c, maxtemp_c} = data?.day;
+                        const icon = `${WEATHER_ICON_BASE_URL}${data.weather[0]?.icon}${WEATHER_ICON_SUFFIX}`;
+                        const {min, max} = data?.temp;
+                        const description = toCamelCase(data.weather[0].description);
                         return index !== 0 && (
                             <>
                                 <ForecastWeatherCard 
                                     key={index} 
                                     day={crnt_day} 
                                     icon={icon} 
-                                    temp_low={mintemp_c} 
-                                    temp_high={maxtemp_c} 
-                                    title={text}
+                                    temp_low={min} 
+                                    temp_high={max} 
+                                    title={description}
                                 />
                             </>
                         );
