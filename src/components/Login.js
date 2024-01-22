@@ -10,7 +10,7 @@ const Login = () => {
     const username = useRef();
     const password = useRef();
     const handleLogin = () => {
-        
+        setErrorMessage();
         const crnt_username = username.current.value, pass = password.current.value;
         if(!crnt_username || !pass){
             setErrorMessage("All fields are mandatory!");
@@ -26,10 +26,14 @@ const Login = () => {
             return false;
         });
         
+        password.current.value = "";
+        username.current.value = "";
         if(userData.length === 0 || !userData){
             setErrorMessage("Invalid username or password!");
             return;
         }
+
+
         navigate("/dashboard");
     }
 
@@ -45,6 +49,7 @@ const Login = () => {
                     <h1 className="font-bold text-3xl py-2 text-black dark:text-white">Login</h1>
                     <input 
                         ref={username}
+                        onChange={() => setErrorMessage()}
                         type="text" 
                         placeholder="Username" 
                         className="p-4 my-4 w-full rounded-md border  text-black dark:bg-[rgb(51,51,51)] dark:text-white focus:border-cyan-300 focus:outline-none" 
@@ -52,6 +57,7 @@ const Login = () => {
                     
                     <input 
                         ref={password}
+                        onChange={() => setErrorMessage()}
                         type="password" 
                         placeholder="Password" 
                         className="p-4 my-4 w-full rounded-md border text-black dark:bg-[rgb(51,51,51)] dark:text-white focus:border-cyan-300 focus:outline-none" 

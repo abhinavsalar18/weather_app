@@ -53,7 +53,7 @@ const Dashboard = () => {
             const weatherData = await fetch(`${weather_base}?lat=${lat}&lon=${lon}&appid=${key}&units=metric`);
             const weatherDataJson = await weatherData.json();
             
-            // console.log("weather_data: ", weatherDataJson)
+            console.log("weather_data: ", weatherDataJson)
             setCurrentWeather(weatherDataJson?.current);
             setForecastWeather(weatherDataJson?.daily);
             setHourlyWeather(weatherDataJson?.hourly);
@@ -159,7 +159,7 @@ const Dashboard = () => {
                         <div className="flex-col text-center">
                             <h2 className="text-2xl text-gray-600 dark:text-gray-400 font-semibold">{toCamelCase(currentWeather?.weather[0]?.description)}</h2>
                             {
-                                <h2 className="text-md font-semibold text-gray-600 dark:text-gray-400">{currentWeather && "Feels like "}&nbsp;{currentWeather?.feelslike_c}°</h2>
+                                <h2 className="text-md font-semibold text-gray-600 dark:text-gray-400">{currentWeather && "Feels like "}&nbsp;{currentWeather?.feels_like}°</h2>
                             }
                         </div>
                         <div className="flex px-4 -mt-4">
@@ -222,16 +222,14 @@ const Dashboard = () => {
                         const {min, max} = data?.temp;
                         const description = toCamelCase(data.weather[0].description);
                         return index !== 0 && (
-                            <>
-                                <ForecastWeatherCard 
+                            <ForecastWeatherCard 
                                     key={index} 
                                     day={crnt_day} 
                                     icon={icon} 
                                     temp_low={min} 
                                     temp_high={max} 
                                     title={description}
-                                />
-                            </>
+                            />
                         );
                     })
                 }

@@ -10,7 +10,7 @@
 # Tech Stack - React, Taiilwind CSS, weatherAPI
 
 # API site
- - https://www.weatherapi.com/api-explorer.aspx
+ - https://openweathermap.org/api
 
 # How to confihure
  - Download the Zip File or Clone the repo
@@ -18,7 +18,7 @@
  - .env file setup
     - Get yout API key from the site 
     - add REACT_APP_API_KEY = your_api_ke
-
+    - 
 # run applicationn
  - npm run start
     
