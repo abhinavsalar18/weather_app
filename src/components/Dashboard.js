@@ -12,14 +12,16 @@ import { CiLocationOn } from "react-icons/ci";
 import ForecastWeatherCard from "./ForecastWeatherCard";
 
 const Dashboard = () => {
-    const [location, setLocation] = useState(null);
+    const {user} = useUser();
+    const [location, setLocation] = useState(user?.city);
     const [currentWeather, setCurrentWeather] = useState();
     const [forecastWeather, setForecastWeather] = useState();
     const [hourlyWeather, setHourlyWeather] = useState();
 
     const navigate = useNavigate();
-    const {user} = useUser();
     const input = useRef();
+
+    
     const date = new Date().toString().split(' ').splice(0,4);
     let day_index = week_days.indexOf(date[0]);
     const time = new Date().toLocaleString(
@@ -36,7 +38,10 @@ const Dashboard = () => {
         const latitude_longitude_data = await fetch(`${geocoding_base}?q=${location}&appid=${key}`);
 
         const jsonData = await latitude_longitude_data.json();        
+        
+        console.log("location: ", jsonData);
         const {lat, lon} = jsonData[0];
+
         return {lat, lon};
     }
 
@@ -45,9 +50,9 @@ const Dashboard = () => {
     const fetchData = async (default_loc) => {
          
         try {
-            const query_location = input?.current?.value || default_loc;
-
-            const {weather_base, key} = API_OPTIONS
+            const query_location = input?.current?.value || location;
+            
+            const {weather_base, key} = API_OPTIONS;
             const {lat, lon} = await geocodingData(query_location);
 
             const weatherData = await fetch(`${weather_base}?lat=${lat}&lon=${lon}&appid=${key}&units=metric`);
@@ -108,7 +113,7 @@ const Dashboard = () => {
 
     // if user if not logged in then redirect to login page
     useEffect(() => {
-        fetchData("Delhi");
+        fetchData();
         if(!user){
             navigate("/");
         }
